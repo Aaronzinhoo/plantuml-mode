@@ -701,6 +701,17 @@ Restore point to same position in text of the line as before indentation."
     ;; restore position in text of line
     (goto-char (- (line-end-position) original-position-eol))))
 
+(defun plantuml-completion-at-point ()
+  "Function used for `completion-at-point-functions' in `plantuml-mode'."
+  (let ((completion-ignore-case t) ; Not working for company-capf.
+        (bounds (bounds-of-thing-at-point 'symbol))
+        (keywords plantuml-kwdList))
+    (when (and bounds keywords)
+      (list (car bounds)
+            (cdr bounds)
+            keywords
+            :exclusve 'no
+            :company-docsig #'identity))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.\\(plantuml\\|pum\\|plu\\)\\'" . plantuml-mode))
@@ -719,7 +730,9 @@ Shortcuts             Command Name
   (set (make-local-variable 'comment-multi-line) t)
   (set (make-local-variable 'comment-style) 'extra-line)
   (set (make-local-variable 'indent-line-function) 'plantuml-indent-line)
-  (setq font-lock-defaults '((plantuml-font-lock-keywords) nil t)))
+  (setq font-lock-defaults '((plantuml-font-lock-keywords) nil t))
+  (add-hook 'completion-at-point-functions
+            #'plantuml-completion-at-point nil 'local))
 
 (defun plantuml-deprecation-warning ()
   "Warns the user about the deprecation of the `puml-mode' project."
